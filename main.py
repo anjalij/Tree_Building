@@ -1,3 +1,4 @@
+import sys
 import parser 
 
 def main(ruleFile):
