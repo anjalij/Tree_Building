@@ -9,6 +9,33 @@ class Glycon():
         self.name = None
         self.topology = nx.DiGraph()
 
+    def num_monomers(self):
+        return self.topology.number_of_nodes()
+
+    def edgesBetween(self, parent_shape, child_shape, carbon_index):
+        edges = []
+        for e in self.topology.edges():
+            child, parenet = e
+            carbonIndex = self.topology.edges[e]['carbon_index']
+            childShape = self.topology.nodes[child]['shape']
+            parentShape = self.topology.nodes[parent]['shape']
+            if carbon_index == carbonIndex:
+                if child_shape == childShape:
+                    if parent_shape == parentShape:
+                        edges.append(e)
+            return edges
+
+    def isUniqueEdgeBetween(self, parent_shape, child_shape, carbon_index):
+        edges = len(edgesBetween(parent_shape, child_shape, carbon_index))
+        if len(edges) == 1:
+            return True
+        elif len(edges) == 0:
+            print("+ WARNING: No edge is found between these shapes")
+            print("|- Child: %s -> Parent: %s " % (child_shape, parent_shape))
+            return False
+        return False
+        
+
     def __repr__(self):
         return self.name 
 
