@@ -11,6 +11,7 @@ import numpy as np
 import networkx as nx
 import StringIO as sio
 import re
+import copy
 import globals as g
 
 class Compartment():
@@ -53,7 +54,7 @@ class Compartment():
             print("Warn: Compartment %s has no input" % self.id) 
             return
         np.random.shuffle(self.rules)
-        output = None
+        output = copy.deepcopy(self.input)
         for r in self.rules:
             self.applyRule(r, output)
         return output 
@@ -81,13 +82,15 @@ class Cell():
         compartment.rules = np.random.choice(parser.rules.keys(), numRules)
 
     def step(self):
-        compartmentsWithInput = []
         for i, c in enumerate(self.compartments):
             if c.input: 
                 self.dotText.append(c.toDot())
                 self.simSteps += 1
                 output = c.applyRules(self.simSteps)
-                self.compartments[i+1].input = output
+                try:
+                    self.compartments[(c.id+1)].input = output
+                except IndexError:
+                    print("No compartment is connected with %s" % c.id)
 
     def writeDotFile(self, filename=None):
         dotText = "strict digraph cell {\n"
