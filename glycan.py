@@ -1,4 +1,4 @@
-'''Class representing Glycon'''
+'''Class representing Glycan'''
 
 import networkx as nx
 import pylab 
@@ -17,7 +17,7 @@ class Monomer():
 
 
 
-class Glycon():
+class Glycan():
 
     def __init__(self, id, root):
         self.topology = nx.DiGraph()
@@ -56,14 +56,14 @@ class Glycon():
         
 
     def __repr__(self):
-        return self.name 
+        return self.id 
 
     def display(self):
         nx.draw(self.topology)
         pylab.show()
 
     def writeGraphviz(self):
-        dotFile = '%s.dot' % self.name
+        dotFile = '%s.dot' % self.id
         print("Writing topology to %s" % dotFile)
         nx.write_dot(self.topology, dotFile)
 
@@ -91,7 +91,7 @@ if __name__ == "__main__":
 
     m1, m2, m3 = Monomer(1, "C"), Monomer(0, "R"), Monomer(1, "T")
     m4, m5, m6 = Monomer(1, "C"), Monomer(0, "R"), Monomer(1, "T")
-    glycan = Glycon("G1", m1)
+    glycan = Glycan("G1", m1)
     glycan.addMonomer(m2, m1)
     glycan.addMonomer(m3, m2)
     glycan.addMonomer(m4, m1)

@@ -6,8 +6,10 @@ Comparment has rules, and molecules (Glycon)
 '''
 
 import parser 
-import glycon
+import glycan
 import numpy as np
+import networkx as nx
+import cStringIO as sio
 import globals as g
 
 class Compartment():
@@ -18,6 +20,7 @@ class Compartment():
         self.output = None
         # Each compartment can have more than one rule, therefore a list.
         self.rules = []
+        self.buff = sio.StringIO()
 
     def actions(self):
         pass
@@ -30,6 +33,14 @@ class Compartment():
         # the action.
         action = np.random.choice(actions)
         print("[INFO] Applying %s: (%s -> %s)" % (self.input, rule, action))
+
+    def dotFile(self):
+        if not self.input:
+            return ""
+        nx.write_dot(self.input.topology, self.buff)
+        content = self.buff.getvalue()
+        print content
+
 
     def applyRules(self, sim_step):
         if self.input is None:
@@ -56,6 +67,7 @@ class Cell():
         # compartment.
         for compt in self.compartments:
             self.addRule(compt)
+            compt.dotFile()
 
 
     def addRule(self, compartment):
