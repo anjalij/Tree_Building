@@ -16,4 +16,4 @@ def parse_rulefile(rule_file):
             if not line: continue
             if line[0] == "#": continue
             condition, action = line.split("->")
-            rules[condition].append(action)
+            rules[condition.strip()].append(action.strip())

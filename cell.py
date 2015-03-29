@@ -22,14 +22,24 @@ class Compartment():
     def actions(self):
         pass
 
-    def applyRule(self, sim_step):
+    def applyRule(self, rule, output):
+        """Apply a single rule on input """
+        actions = parser.rules[rule]
+
+        # A rule may have more than one action in future, select one and apply
+        # the action.
+        action = np.random.choice(actions)
+        print("[INFO] Applying %s: (%s -> %s)" % (self.input, rule, action))
+
+    def applyRules(self, sim_step):
         if self.input is None:
             print("Warn: Compartment %s has not input" % self.id) 
-
-
-
-
-
+            return
+        np.random.shuffle(self.rules)
+        output = None
+        for r in self.rules:
+            self.applyRule(r, output)
+        return output 
 
 class Cell():
 
@@ -58,7 +68,7 @@ class Cell():
         for i, c in enumerate(self.compartments):
             if c.input: 
                 self.simSteps += 1
-                output = c.applyRule(self.simSteps)
+                output = c.applyRules(self.simSteps)
                 self.compartments[i+1].input = output
 
 

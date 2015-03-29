@@ -1,7 +1,9 @@
-C,0,-1 -> C,S,-1
-C,-1,0 -> C,-1,S
-S,0,-1 -> S,C,-1
-S,-1,0 -> S,-1,C
-S,0,0 -> S,T,0
-C,0,0 -> C,T,0
+# Monomer type, Left, Right -> Monomer type, Left, Right
+# _ = Unoccupied, X = Anything can attach here, Monomer type
+C,_,X -> C,S,X
+C,X,_ -> C,X,S
+S,_,X -> S,C,X
+S,X,_ -> S,X,C
+S,_,_ -> S,T,_
+C,_,_ -> C,T,_
 
