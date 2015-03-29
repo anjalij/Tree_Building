@@ -13,7 +13,19 @@ import StringIO as sio
 import re
 import copy
 import globals as g
+import pylab
 
+
+def equal(children, pattern):
+    result = []
+    for i, p in enumerate(children): 
+        if pattern[i] == 'X':
+            result.append(True)
+        else:
+            result.append(p == pattern[i])
+    return sum(result) == len(result)
+
+    
 class Compartment():
 
     def __init__(self, id):
@@ -23,18 +35,59 @@ class Compartment():
         # Each compartment can have more than one rule, therefore a list.
         self.rules = []
         self.dotText = ""
+        self.graph = None
 
-    def actions(self):
-        pass
 
-    def applyRule(self, rule, output):
-        """Apply a single rule on input """
-        actions = parser.rules[rule]
+    def action(self, node, action):
+        print("Applying %s at %s" % (action, node))
+        nodeDict = self.graph.node[node]
+        action = action.split(',')
+        parentShape, cIndices = action[0], action[1:]
+        for i, c in enumerate(cIndices):
+            m = glycan.Monomer(i, c)
+            self.graph.add_node(m, shape=c, id=i, label="%s_%s"%(c, i))
+            self.graph.add_edge(m, node)
+        self.input.topology = self.graph
 
-        # A rule may have more than one action in future, select one and apply
+
+    def applyRule(self, pattern, output):
+        """Apply a single action on input when it satifies given pattern """
+
+        actions = parser.rules[pattern]
+        # A pattern may have more than one action in future, select one and apply
         # the action.
         action = np.random.choice(actions)
-        print("[INFO] Applying %s: (%s -> %s)" % (self.input, rule, action))
+        print("[INFO] Applying %s: (%s -> %s)" % (self.input, pattern, action))
+        self.graph = self.input.topology
+
+        pattern = pattern.split(',')
+        candidates = []
+        for n in self.graph.nodes():
+            if self.guard(n, pattern):
+                candidates.append(n)
+        if candidates:
+            candidate = np.random.choice(candidates)
+            self.action(candidate, action)
+        else:
+            print("\tNo match for this rule")
+
+
+    def guard(self, node, pattern):
+        nShape, nCIndex = self.graph.node[node]['label'].split('_')
+        shape, carbonIndices = pattern[0], pattern[1:] 
+        if nShape != shape:
+            return False
+
+        children = self.graph.predecessors(node)
+        children.sort(key=lambda x:x.carbonIndex)
+        
+        if len(children) < len(carbonIndices):
+            children += [ '_' for x in range(len(carbonIndices) - len(children))]
+
+        if equal(children, carbonIndices):
+            return True
+        return False
+
 
     def toDot(self):
         if not self.input:
@@ -56,7 +109,7 @@ class Compartment():
         np.random.shuffle(self.rules)
         output = copy.deepcopy(self.input)
         for r in self.rules:
-            self.applyRule(r, output)
+            output = self.applyRule(r, output)
         return output 
 
 class Cell():

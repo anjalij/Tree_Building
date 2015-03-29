@@ -25,7 +25,7 @@ class Glycan():
         self.shapes = { 'C' : 'circle'
                 , 'R' : 'rect'
                 , 'T' : 'triangle' }
-        self.colors = { 0 : "red", 1 : "blue", 2 : "yellow" }
+        self.colors = { 0 : "red", 1 : "blue", 2 : "yellow", 3 : "gray" }
         self.addNode(root)
 
     def num_monomers(self):
@@ -73,7 +73,7 @@ class Glycan():
             , label = monomer.__repr__()
             , shape=self.shapes[monomer.shape]
             , carbon_index=monomer.carbonIndex
-            , color=self.colors[monomer.carbonIndex]
+            , color=self.colors.get(monomer.carbonIndex, 'black')
             )
 
 
@@ -89,14 +89,18 @@ class Glycan():
 
 if __name__ == "__main__":
 
-    m1, m2, m3 = Monomer(1, "C"), Monomer(0, "R"), Monomer(1, "T")
+    m1, m2, m3 = Monomer(1, "C"), Monomer(4, "R"), Monomer(1, "T")
     m4, m5, m6 = Monomer(1, "C"), Monomer(0, "R"), Monomer(1, "T")
     glycan = Glycan("G1", m1)
     glycan.addMonomer(m2, m1)
-    glycan.addMonomer(m3, m2)
+    glycan.addMonomer(m3, m1)
     glycan.addMonomer(m4, m1)
     glycan.addMonomer(m5, m4)
     glycan.addMonomer(m6, m5)
+    children = glycan.topology.predecessors(m1)
+    print children
+    children.sort(key=lambda x: x.carbonIndex)
+    print children
     #glycan.writeGraphviz()
     nx.write_dot(glycan.topology, "network.dot")
     #nx.draw(glycan.topology)
