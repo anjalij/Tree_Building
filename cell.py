@@ -1,0 +1,72 @@
+'''
+Class representing compartments.
+
+Comparment has rules, and molecules (Glycon)
+
+'''
+
+import parser 
+import glycon
+import numpy as np
+import globals as g
+
+class Compartment():
+
+    def __init__(self, id):
+        self.id = id
+        self.input = None
+        self.output = None
+        # Each compartment can have more than one rule, therefore a list.
+        self.rules = []
+
+    def actions(self):
+        pass
+
+    def applyRule(self, sim_step):
+        if self.input is None:
+            print("Warn: Compartment %s has not input" % self.id) 
+
+
+
+
+
+
+class Cell():
+
+    def __init__(self):
+        self.compartments = []
+        self.simSteps = 0
+
+    def initCell(self):
+        for i in range(g.num_compartments_):
+            # Select rules randomly
+            self.compartments.append(Compartment(i))
+
+        # Parse the rules, randomly select few rules and put them in
+        # compartment.
+        for compt in self.compartments:
+            self.addRule(compt)
+
+
+    def addRule(self, compartment):
+        """Add rule to compartments"""
+        numRules = np.random.randint(1, g.num_compartments_)
+        compartment.rules = np.random.choice(parser.rules.keys(), numRules)
+
+    def step(self):
+        compartmentsWithInput = []
+        for i, c in enumerate(self.compartments):
+            if c.input: 
+                self.simSteps += 1
+                output = c.applyRule(self.simSteps)
+                self.compartments[i+1].input = output
+
+
+
+    def simulate(self, steps = -1):
+        """Simulate the cell """
+        print("Simulating for %s steps" % steps)
+        input =  g.input_
+        self.compartments[0].input = input
+        self.step()
+
