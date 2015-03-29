@@ -23,8 +23,9 @@ class Glycan():
         self.topology = nx.DiGraph()
         self.id = id
         self.shapes = { 'C' : 'circle'
-                , 'R' : 'rect'
-                , 'T' : 'triangle' }
+                , 'T' : 'triangle' 
+                ,  'S' : 'rect'
+                }
         self.colors = { 0 : "red", 1 : "blue", 2 : "yellow", 3 : "gray" }
         self.addNode(root)
 

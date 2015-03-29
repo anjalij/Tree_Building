@@ -35,20 +35,20 @@ class Compartment():
         # Each compartment can have more than one rule, therefore a list.
         self.rules = []
         self.dotText = ""
-        self.graph = None
 
 
     def action(self, node, action):
         print("Applying %s at %s" % (action, node))
-        nodeDict = self.graph.node[node]
+        parent = self.input.topology[node]
+        nodeDict = self.input.topology.node[node]
         action = action.split(',')
         parentShape, cIndices = action[0], action[1:]
         for i, c in enumerate(cIndices):
-            m = glycan.Monomer(i, c)
-            self.graph.add_node(m, shape=c, id=i, label="%s_%s"%(c, i))
-            self.graph.add_edge(m, node)
-        self.input.topology = self.graph
-
+            if c not in ['_', 'X']:
+                m = glycan.Monomer(i, c)
+                print("[ACTION] Adding monomer %s" % m)
+                self.input.addMonomer(m, node)
+                print self.input.topology.nodes()
 
     def applyRule(self, pattern, output):
         """Apply a single action on input when it satifies given pattern """
@@ -58,11 +58,10 @@ class Compartment():
         # the action.
         action = np.random.choice(actions)
         print("[INFO] Applying %s: (%s -> %s)" % (self.input, pattern, action))
-        self.graph = self.input.topology
 
         pattern = pattern.split(',')
         candidates = []
-        for n in self.graph.nodes():
+        for n in self.input.topology.nodes():
             if self.guard(n, pattern):
                 candidates.append(n)
         if candidates:
@@ -73,12 +72,12 @@ class Compartment():
 
 
     def guard(self, node, pattern):
-        nShape, nCIndex = self.graph.node[node]['label'].split('_')
+        nShape, nCIndex = self.input.topology.node[node]['label'].split('_')
         shape, carbonIndices = pattern[0], pattern[1:] 
         if nShape != shape:
             return False
 
-        children = self.graph.predecessors(node)
+        children = self.input.topology.predecessors(node)
         children.sort(key=lambda x:x.carbonIndex)
         
         if len(children) < len(carbonIndices):
@@ -137,13 +136,13 @@ class Cell():
     def step(self):
         for i, c in enumerate(self.compartments):
             if c.input: 
-                self.dotText.append(c.toDot())
                 self.simSteps += 1
                 output = c.applyRules(self.simSteps)
                 try:
                     self.compartments[(c.id+1)].input = output
                 except IndexError:
                     print("No compartment is connected with %s" % c.id)
+                self.dotText.append(c.toDot())
 
     def writeDotFile(self, filename=None):
         dotText = "strict digraph cell {\n"
