@@ -13,7 +13,7 @@ class Monomer():
         return "%s" % id(self)
 
     def __repr__(self):
-        return "%s:%s" % (self.shape, self.carbonIndex)
+        return "%s_%s" % (self.shape, self.carbonIndex)
 
 
 

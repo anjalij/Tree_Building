@@ -9,7 +9,8 @@ import parser
 import glycan
 import numpy as np
 import networkx as nx
-import cStringIO as sio
+import StringIO as sio
+import re
 import globals as g
 
 class Compartment():
@@ -20,7 +21,7 @@ class Compartment():
         self.output = None
         # Each compartment can have more than one rule, therefore a list.
         self.rules = []
-        self.buff = sio.StringIO()
+        self.dotText = ""
 
     def actions(self):
         pass
@@ -34,17 +35,22 @@ class Compartment():
         action = np.random.choice(actions)
         print("[INFO] Applying %s: (%s -> %s)" % (self.input, rule, action))
 
-    def dotFile(self):
+    def toDot(self):
         if not self.input:
             return ""
-        nx.write_dot(self.input.topology, self.buff)
-        content = self.buff.getvalue()
-        print content
+        print("Converting input to dot")
+        g = nx.to_pydot(self.input.topology)
+        content = g.to_string()
+        content = re.sub(r'strict(\s+\w+)+\s+{', 'subgraph cluster_%s {' % self.id
+                , content
+                )
+        self.dotText = content
+        return content
 
 
     def applyRules(self, sim_step):
         if self.input is None:
-            print("Warn: Compartment %s has not input" % self.id) 
+            print("Warn: Compartment %s has no input" % self.id) 
             return
         np.random.shuffle(self.rules)
         output = None
@@ -57,6 +63,7 @@ class Cell():
     def __init__(self):
         self.compartments = []
         self.simSteps = 0
+        self.dotText = []
 
     def initCell(self):
         for i in range(g.num_compartments_):
@@ -67,8 +74,6 @@ class Cell():
         # compartment.
         for compt in self.compartments:
             self.addRule(compt)
-            compt.dotFile()
-
 
     def addRule(self, compartment):
         """Add rule to compartments"""
@@ -79,16 +84,25 @@ class Cell():
         compartmentsWithInput = []
         for i, c in enumerate(self.compartments):
             if c.input: 
+                self.dotText.append(c.toDot())
                 self.simSteps += 1
                 output = c.applyRules(self.simSteps)
                 self.compartments[i+1].input = output
 
-
+    def writeDotFile(self, filename=None):
+        dotText = "strict digraph cell {\n"
+        dotText += "\n".join(self.dotText)
+        dotText += "\n}"
+        if not filename:
+            print(dotText)
+            return
+        with open(filename, "w") as f:
+            f.write(dotText)
 
     def simulate(self, steps = -1):
         """Simulate the cell """
         print("Simulating for %s steps" % steps)
-        input =  g.input_
-        self.compartments[0].input = input
+        self.compartments[0].input = g.input_
         self.step()
+        self.writeDotFile(filename="network.dot")
 
